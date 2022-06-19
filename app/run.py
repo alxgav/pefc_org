@@ -1,3 +1,4 @@
+import csv
 import os
 import re
 import pandas as pd
@@ -13,6 +14,16 @@ from selenium.webdriver.support.select import Select
 
 path = os.path.dirname(os.path.realpath(__file__))
 logger.add(f'{path}/error.log', format='{time} {level} {message}', level='DEBUG', serialize=False)
+
+if not os.path.exists('out/data.csv'):
+    file = open('out/data.csv', 'a')
+    writer = csv.writer(file, delimiter=';')
+    writer.writerow(
+        ('Entity', 'Certificate', 'Licence')
+    )
+else:
+    file = open('out/data.csv', 'a')
+    writer = csv.writer(file, delimiter=';')
 
 browser = browser()
 
@@ -32,19 +43,18 @@ def init_page() -> None:
     sleep(15)
 
 
-def getData() -> list[dict]:
-    data = []
+def getData() -> None:
     try:
         init_page()
         total_pages = ''.join(re.findall('\d+', browser.find_element(By.XPATH,
-                                                                        '/html/body/div[2]/section[2]/div/div['
-                                                                        '2]/div/div/div/div/article/div['
-                                                                        '2]/div/div/article/form/div/nav/div[1]/ul['
-                                                                        '1]/li[3]/span').text))
+                                                                     '/html/body/div[2]/section[2]/div/div['
+                                                                     '2]/div/div/div/div/article/div['
+                                                                     '2]/div/div/article/form/div/nav/div[1]/ul['
+                                                                     '1]/li[3]/span').text))
         logger.info(total_pages)
         rows = len(browser.find_elements(By.CLASS_NAME, 'cbResultSetDataRow'))
 
-        logger.info(rows)
+        data = []
 
         for page in range(1, int(total_pages) + 1):
             logger.info(page)
@@ -67,14 +77,13 @@ def getData() -> list[dict]:
                 Licence = browser.find_element(By.XPATH,
                                                f'/html/body/div[2]/section[2]/div/div[2]/div/div/div/div/article/div['
                                                f'2]/div/div/article/form/div/div/div/table/tbody/tr[{row}]/td[5]').text
-                data.append({
-                    'Entity': Entity,
-                    'Certificate': Certificate,
-                    'Licence': Licence
-                })
-            if page == 3:
-                break
-        return data
+
+                data.append((Entity, Certificate, Licence))
+            writer.writerows(
+                data
+            )
+            # if page == 1:
+            #     break
 
     except Exception as ex:
         logger.error(ex)
@@ -110,7 +119,7 @@ def make_excel(data, filename='out/data.xlsx', sheet_name='sheet') -> None:
 
 @logger.catch
 def main():
-    make_excel(getData())
+    getData()
 
 
 if __name__ in "__main__":
