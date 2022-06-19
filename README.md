@@ -8,6 +8,6 @@ This script scraping data from perf.org
 
 # INSTALATION
 
-pip install selenium
-pip install pandas
-pip install xlsxwriter
+1. pip install selenium
+2. pip install pandas
+3. pip install xlsxwriter
